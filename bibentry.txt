@@ -1,0 +1,9 @@
+% bibentry template for lsst.bib in https://github.com/lsst/lsst-texmf/blob/master/texmf/bibtex/bib/lsst.bib
+
+@DocuShare{DMTN-194,
+   author = { Fred Moolekamp },
+    title = {Moving toward a simplified objective function for scarlet models},
+     year = 2021,
+    month = Jun,
+   handle = {DMTN-194},
+      url = {https://dmtn-194.lsst.io } }

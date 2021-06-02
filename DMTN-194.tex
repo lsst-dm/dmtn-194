@@ -1,0 +1,70 @@
+\documentclass[DM,authoryear,toc]{lsstdoc}
+% lsstdoc documentation: https://lsst-texmf.lsst.io/lsstdoc.html
+\input{meta}
+
+% Package imports go here.
+
+% Local commands go here.
+
+%If you want glossaries
+%\input{aglossary.tex}
+%\makeglossaries
+
+\title{Moving toward a simplified objective function for scarlet models}
+
+% Optional subtitle
+% \setDocSubtitle{A subtitle}
+
+\author{%
+Fred Moolekamp
+}
+
+\setDocRef{DMTN-194}
+\setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-194}}
+
+\date{\vcsDate}
+
+% Optional: name of the document's curator
+% \setDocCurator{The Curator of this Document}
+
+\setDocAbstract{%
+Science pipelines made meas_extensions_scarlet the default deblender for multi-band deblending in weekly w_2021_05, which is powered by the scarlet package. scarlet was co-created by science pipelines and Peter Melchior's group at Princeton with the dual goal of deblending multi-band images in HSC/Rubin Observatory data and future joint processing with a fusion of observations from both ground and space-based telescopes as well as other instruments like IFUs and grisms. As scarlet has become an increasingly more powerful tool, the chain of classes and commands required to build the objective function has become increasingly complex in order to properly handle the wide variety of applications that scarlet supports (both now and in the near future). This technote describes the current complexity of scarlet models, the subset of those models actually used in the science pipelines, and a proposal for using a more simple model in meas_extensions_scarlet to potentially speed up development, runtime, and improve the memory footprint.
+}
+
+% Change history defined here.
+% Order: oldest first.
+% Fields: VERSION, DATE, DESCRIPTION, OWNER NAME.
+% See LPM-51 for version number policy.
+\setDocChangeRecord{%
+  \addtohist{1}{YYYY-MM-DD}{Unreleased.}{Fred Moolekamp}
+}
+
+
+\begin{document}
+
+% Create the title page.
+\maketitle
+% Frequently for a technote we do not want a title page  uncomment this to remove the title page and changelog.
+% use \mkshorttitle to remove the extra pages
+
+% ADD CONTENT HERE
+% You can also use the \input command to include several content files.
+
+\appendix
+% Include all the relevant bib files.
+% https://lsst-texmf.lsst.io/lsstdoc.html#bibliographies
+\section{References} \label{sec:bib}
+\renewcommand{\refname}{} % Suppress default Bibliography section
+\bibliography{local,lsst,lsst-dm,refs_ads,refs,books}
+
+% Make sure lsst-texmf/bin/generateAcronyms.py is in your path
+\section{Acronyms} \label{sec:acronyms}
+\input{acronyms.tex}
+% If you want glossary uncomment below -- comment out the two lines above
+%\printglossaries
+
+
+
+
+
+\end{document}
