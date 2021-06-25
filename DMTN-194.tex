@@ -115,9 +115,9 @@ Regardless of the package used, the basic concept of automatic differentiation i
 Looking at each term individually we see that these are all simple gradients to calculate for ourselves and that we don't really \emph{need} to use autograd. For example, to calculate the gradient update of the SED for the $i^{th}$ component we get
 
 \begin{align}
-  \frac{\partial\mathcal{L}_C}{\partial P(M)} &=& -W\cdot(D-P(M)) \\
-  \frac{\partial M}{\partial M_i} &=& 1 \\
-  {\partial M_i}{\partial A_i} &=& S^T \\
+  \frac{\partial\mathcal{L}_C}{\partial P(M)} &= -W\cdot(D-P(M)) \\
+  \frac{\partial M}{\partial M_i} &= 1 \\
+  {\partial M_i}{\partial A_i} &= S^T \\
 \end{align}
 
 In direct space $\frac{\partial P(M)}{\partial M}$ is just the input gradients flipped and transposed and even in kspace there is a simple analytic form (because this is a linear transformation). So in reality for the scarlet models that we use in the science pipelines we really don't need autograd anymore and in fact removing comes with multiple benefits. As mentioned above, autograd is deprecated and using a deprecated package before the LSST has even begun is ill-advised (for the same reason that we switched to python 3). There is also a significant memory overhead that comes with using autograd and a minor reduction in performance. The memory overhead comes from the fact that autograd was developed primarily for backpropagating gradients for neural networks, which typically involve apply a matrix transformation to an input vector, which is different from the way that our optimizer works. As a result, the type of gradient that autograd calculates (a vector-jacobian-product) requires the output model from the forward direction as an input \emph{after each operation}. In other words, the operation $M = M_1 + M_2$ increases the memory by the size of $M$, giving us a total increase in memeory of an order of magnitude or more! I tested this out using a toy model and did show a substantial increase in memory without even applying the convolutions. See \url{https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html} for more details on why JAX chose the gradient method that they use and why it is inefficient.
