@@ -52,14 +52,14 @@ Science pipelines made meas\_extensions\_scarlet the default deblender for multi
 % ADD CONTENT HERE
 % You can also use the \input command to include several content files.
 
-\section Introduction
+\section{Introduction}
 
 From its inception scarlet was designed to function as a multi-band deblender for the Rubin Observatory Legacy Survey of Space-Time (LSST), a mutli-purpose deblender for joint survey processing of data from multiple instruments, and an all-purpose deblender for more focused analysis of complicated blended regions like galaxy mergers and low surface brighness galaxies (LSB's). But as the codebase has matured, internal testing and user feedback have caused scarlet to have a much wider range of models available (Melchior et al. 2021 in prep) which has resulted in a much more complicated framework. While scarlet is fully capable of meeting the deblending needs of the LSST, a more simplified version of the objective function will allow us to take advantage of the primitives and initialization schemes implemented in scarlet while avoiding the unnecessary bloat that comes with having a more general framework, as well as a significantly reduced memeory footprint.
 
 
-\section The evolution of scarlet models
+\section{The evolution of scarlet models}
 
-\subsection The original scarlet model \label{sec:original}
+\subsection{The original scarlet model} \label{sec:original}
 
 The key insight that lead to the creation of scarlet is that a large percentage of galaxies can be approximated by a collection of components, where each component is composed of a 2 dimensional morphology (shape) matrix with roughly a constant spectrum (amplitude) over the entire morphology. So in other words the model of a single source $k$ is
 
@@ -96,7 +96,7 @@ In this sense the original scarlet model was a constrained matrix factorization 
 
 where we calculated the entire gradient in one step using a matrix inversion, followed by the application of proximal operators.
 
-\subsection The move to autograd
+\subsection{The move to autograd}
 
 To improve performance we decided to switch from direct convolutions to convolutions in Fourier space. Although the FFT is still a linear transformation, it is more efficient (in terms of both memory and CPU cycles) to calculate the convolution in both the forward (model building) and backward (gradient udpate) directions by applying it as a function $P(M)$, giving us the likelihood
 
@@ -124,7 +124,7 @@ In direct space $\frac{\partial P(M)}{\partial M}$ is just the input gradients f
 
 While the LSST has commited to using CPUs (at least at the beginning of the survey), joint processing will be using GPUs or TPUs, which are not supported by autograd. So Peter Melchior and his group would already like to move away from autograd and convert scarlet to pytorch or JAX. But for the LSST I believe that due to memory and computational issues to calculate gradients that we can already calulate on our own is good reason to just calculate all of the gradients ourselves without using any automatic differention package. This frees the other scarlet developers to move to a GPU/TPU compatible package and allows us to have a faster, more memory efficient codebase.
 
-\subsection The current scarlet model framework
+\subsection{The current scarlet model framework}
 
 It quickly became obvious that in order to blend more complicated scenes like galaxies with dust lanes, merging galaxies, and crowded fields, we would also need to allow our models to become more complicated. We were also using a simple proximal gradient method as our optimizer, which uses only first order derivatives to calculate the gradient updates. So in 2019 and 2020 we made several significant changes to the scarlet arcitechture to allow us to use more complicated models and an improved nADAM optimizer that approximates the Hessian for pseudo 2nd order gradients. This section briefly describees the current version of scarlet as a result of those changes.
 
@@ -134,7 +134,7 @@ An object made up of a collection parameters is called a \texttt{Model}, a hiera
 
 A \texttt{Component} is a single component in a blend, which can be a source or a component of a source like its bulge or disk. Sources with a similar model to Eq. \ref{eq:single_model} are \texttt{FactorizedComponent} models, which are models with two child models: \texttt{Spectrum} and \texttt{Morphology}, which are themselves subclassed for different types of models. The \texttt{PSF} is also a model, which makes it possible to fit the PSF during optimization (although this is not currently used in practice) as well as the \texttt{Renderer} class that renders a scarlet model in the same frame as an observation (in a single or in multiple bands, at potentially different resolutions). There is no \texttt{Source} class, instead sources inherit directly from \texttt{Component} or one of its subclasses. In LSST we use \texttt{SingleExtendedSource}, which inherits from \texttt{FactorizedComponent} for faint sources with only a single component and \texttt{MultiExtendedSource}, which inherits from \texttt{CombinedComponent}, which is a component with two \texttt{SingleExtendedSource} models as children. Finally the \texttt{Blend} class is also a \texttt{CombinedComponent} that contains all of the sources in the blend as models and performs the optimization.
 
-\section Simplifying scarlet models and the objective function
+\section{Simplifying scarlet models and the objective function}
 
 Because autograd is embedded in the \texttt{Parameter} class, which almost every other data structure in in scarlet is based off of, moving away from autograd requires updates to almost every module in the package. But for Rubin there is good reason to overhaul scarlet and use our own optimization scheme. There are two types of overhead that come with the current version of scarlet, one is the complexity of the overall data structures, most of which are unused and unnecessary for a general ground based deblender. So testing out new algorihtms and ideas is much more complicated because of all of the overhead needed to make new models and optimization algorihtms fit the scarlet data structures. The other overhead is the increase in memeory and CPU cycles that comes with using autograd.
 
@@ -142,7 +142,7 @@ Part of the reason that scarlet models became so complex is because the develope
 
 If instead we stick to the paradigm where all sources are composed of models as given by Eq. \ref{single_model}, the entire objective function (the forward model and backward gradient) can be written in just over 50 lines. This still requires scarlet methods for source detection and initiailization, and requires an optimizer to pass the initial parameters and objective function into, but now that we know the types of models that we want to use for ground based photometry there is good reason to return to a simpler version of scarlet. Even if we decide to include more complicated models in the future, the new code to construct the model is only 7 lines and including new model types (as long as we know what they are, which we will for the LSST) is trivial because the complications that arise from allowing users to generate arbitrary models from aritrary instruments have been removed. We can then feed the full model into either the nADAM optimizer that scarlet uses or package it to be used in any optimizer that allows for constrained optimization. For example, scipy has optmizization algorithms that take bounds as parameters. If we update the bounds in the objective function then that's an easy way to implement our proximal operators in a more standard optimizer and will allow us to quickly and easily explore a wider range of optimizers.
 
-\section Conclusion
+\section{Conclusion}
 
 Using the simplified code to generate a more efficient objective function will produce savings of memory, computation time, and complexity. The easier models and objective function will make it easier for other developers on the project to see what is going on internally and we can still take advantages of improved models, detection algorithms, and initialization algorithms from the main scarlet repo. There will be a cost of ~1 week of developer time to implement this solution, but it will make it much easier to test other algorithms like multi-scale deblending and parameteric models to fix the known issues that prevent scarlet from properly measuring sizes and deblending large galaxies.
 
